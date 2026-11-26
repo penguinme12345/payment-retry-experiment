@@ -158,3 +158,20 @@ def test_cli_resolves_project_root(
 def test_render_is_deterministic(power: dict) -> None:
     r = _load("results_ship_segmented.json")
     assert render_memo(r, power) == render_memo(r, power)
+
+
+def test_srm_failure_leaves_guardrails_unverified(power: dict) -> None:
+    memo = render_memo(_load("results_do_not_ship_srm.json"), power)
+    assert "Customer experience held up" not in memo
+    assert "unverified" in memo
+    assert "Held." not in memo
+    assert "Unverified." in memo
+
+
+def test_cuped_not_confirmatory_when_ci_spans_zero(power: dict) -> None:
+    results = _load("results_ship.json")
+    results["cuped"].update(abs_lift=0.01, ci_low=-0.001, ci_high=0.021)
+    memo = render_memo(results, power)
+    assert "confirming the raw estimate" not in memo
+    assert "in line with the raw estimate" not in memo
+    assert "does not rule out zero" in memo
