@@ -52,3 +52,12 @@ def test_key_results_table() -> None:
     table = blocks(_load("ship_segmented"))["key-results"]
     assert "| Decision | Ship to targeted segments |" in table
     assert "Customers declined for insufficient funds" in table
+
+
+def test_fill_handles_empty_blocks() -> None:
+    from retrylab.reporting.readme import fill
+
+    text = "a\n<!-- BEGIN:x -->\n<!-- END:x -->\nb\n"
+    out = fill(text, {"x": "filled"})
+    assert out == "a\n<!-- BEGIN:x -->\nfilled\n<!-- END:x -->\nb\n"
+    assert fill(out, {"x": "again"}) == "a\n<!-- BEGIN:x -->\nagain\n<!-- END:x -->\nb\n"

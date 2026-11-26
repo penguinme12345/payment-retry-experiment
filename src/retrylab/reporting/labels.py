@@ -33,6 +33,7 @@ METRIC_LABELS: dict[str, str] = {
     "recovered_revenue_per_invoice": "recovered revenue per failed invoice",
     "recovered_revenue": "recovered revenue",
     "avg_retries_per_invoice": "retries per failed invoice",
+    "hours_to_recovery": "hours to recovery (recovered invoices)",
     "billing_ticket_rate": "billing-complaint tickets within 14 days",
     "involuntary_churn_rate": "involuntary churn within 30 days",
     "experiment_invoices": "experiment invoices",
@@ -40,6 +41,7 @@ METRIC_LABELS: dict[str, str] = {
 
 MONEY_METRICS = {"recovered_revenue_per_invoice_usd", "recovered_revenue_per_invoice"}
 COUNT_METRICS = {"avg_retries_per_invoice"}
+HOUR_METRICS = {"hours_to_recovery"}
 
 
 def metric_label(metric: str) -> str:

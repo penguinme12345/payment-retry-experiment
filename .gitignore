@@ -9,9 +9,5 @@ data/*.duckdb.wal
 dbt/target/
 dbt/logs/
 dbt/dbt_packages/
-reports/*.json
-reports/figures/*.png
 exports/powerbi/*.csv
-docs/memo.md
-HANDOFF-*.md
 *.egg-info/

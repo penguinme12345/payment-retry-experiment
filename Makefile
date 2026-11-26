@@ -28,7 +28,7 @@ memo:
 export:
 	$(PYTHON) -m app.export --out exports/powerbi/
 
-all: simulate dbt design analyze memo export
+all: simulate dbt design analyze memo export readme
 
 app:
 	streamlit run app/Home.py

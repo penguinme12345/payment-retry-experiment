@@ -2,6 +2,7 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 jobs:
@@ -18,10 +19,9 @@ jobs:
       - run: make test
 
   pipeline:
-    # Full pipeline at 5k customers. Until workstreams B–E are merged, the dbt/design/analysis/
-    # export steps don't exist yet, so this job is allowed to fail (PRD-F phase 2 removes this).
+    # Full pipeline from a clean checkout at 5k customers: simulate → dbt → design → analyze →
+    # memo → export. Required to pass.
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -29,7 +29,7 @@ jobs:
           python-version: "3.11"
           cache: pip
       - run: make setup
-      - run: make all SIM_CONFIG=config/sim.ci.yaml
+      - run: make clean all SIM_CONFIG=config/sim.ci.yaml
       - uses: actions/upload-artifact@v4
         if: always()
         with:

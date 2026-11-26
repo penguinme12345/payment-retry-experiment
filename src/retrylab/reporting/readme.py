@@ -15,7 +15,7 @@ from typing import Any
 from retrylab.reporting import formatting as fmt
 from retrylab.reporting.bullets import make_bullets
 from retrylab.reporting.context import load_json
-from retrylab.reporting.labels import segment_subject
+from retrylab.reporting.labels import metric_label, segment_subject
 from retrylab.reporting.paths import resolve
 
 DECISION_TEXT = {
@@ -58,13 +58,14 @@ def key_results(results: dict[str, Any]) -> str:
     for g in results.get("guardrails", []):
         rows.append(
             (
-                g["metric"],
+                f"Guardrail: {metric_label(g['metric'])}",
                 f"{fmt.signed_pp(g['abs_lift'], 2)} ({'breached' if g['breached'] else 'held'})",
             )
         )
+    # Same ranking as the memo's "Where it works": strongest evidence first, then largest lift.
     best = sorted(
         (s for s in results.get("segments", []) if s["significant_adj"] and s["abs_lift"] > 0),
-        key=lambda s: -s["abs_lift"],
+        key=lambda s: (s["p_value_adj"], -s["abs_lift"]),
     )[:2]
     for s in best:
         rows.append(
@@ -93,10 +94,10 @@ def fill(readme_text: str, generated: dict[str, str]) -> str:
     """Replace each marked block's body with its generated content."""
     for name, body in generated.items():
         pattern = re.compile(
-            rf"(<!-- BEGIN:{re.escape(name)} -->\n).*?(\n<!-- END:{re.escape(name)} -->)",
+            rf"(<!-- BEGIN:{re.escape(name)} -->\n)(?:.*?\n)?(<!-- END:{re.escape(name)} -->)",
             re.DOTALL,
         )
-        readme_text = pattern.sub(lambda m, b=body: m.group(1) + b + m.group(2), readme_text)
+        readme_text = pattern.sub(lambda m, b=body: m.group(1) + b + "\n" + m.group(2), readme_text)
     return readme_text
 
 
