@@ -61,12 +61,15 @@ def decide(
             positive,
         )
     if positive:
-        why = (
-            f"the overall lift is significant but {', '.join(_label(s) for s in negative)} "
-            "is significantly hurt"
-            if primary_significant and primary_abs_lift > 0
-            else "the overall lift is not significant"
-        )
+        if primary_significant and primary_abs_lift > 0:
+            why = (
+                f"the overall lift is significant but {', '.join(_label(s) for s in negative)} "
+                "is significantly hurt"
+            )
+        elif primary_significant:
+            why = "the overall effect is significantly negative"
+        else:
+            why = "the overall lift is not significant"
         return Decision(
             SHIP_SEGMENTED,
             f"Ship only to {', '.join(_label(s) for s in positive)}: {why}, while these "

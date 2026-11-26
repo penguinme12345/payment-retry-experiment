@@ -50,6 +50,13 @@ def test_not_significant_overall_but_positive_segment_goes_segmented() -> None:
     assert decide(True, False, 0.01, OK_GUARDS, [POS, NULL]).decision == SHIP_SEGMENTED
 
 
+def test_significant_negative_overall_with_positive_segment_says_so() -> None:
+    d = decide(True, True, -0.03, OK_GUARDS, [POS])
+    assert d.decision == SHIP_SEGMENTED
+    assert "significantly negative" in d.rationale
+    assert "not significant" not in d.rationale
+
+
 def test_significant_negative_overall_does_not_ship() -> None:
     assert decide(True, True, -0.03, OK_GUARDS, [NULL]).decision == DO_NOT_SHIP
 
