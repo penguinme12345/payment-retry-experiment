@@ -81,6 +81,24 @@ def usd(x: Any, digits: int = 0) -> str:
     return f"-${abs(v):,.{digits}f}" if v < 0 else f"${v:,.{digits}f}"
 
 
+def usd_rounded(x: Any) -> str:
+    """USD rounded the way the memo and README round it: nearest $100 at $1,000 and above."""
+    try:
+        v = float(x)
+    except (TypeError, ValueError):
+        return "n/a"
+    if abs(v) >= 1_000:
+        v = round(v, -2)
+    return usd(v)
+
+
+SECONDARY_LABELS = {
+    "recovered_revenue_per_invoice_usd": "Recovered revenue per failed invoice ($)",
+    "avg_retries_per_invoice": "Retries per failed invoice",
+    "hours_to_recovery": "Hours to recovery (recovered invoices)",
+}
+
+
 def segment_label(dimension: str, value: str) -> str:
     """``Decline code: insufficient_funds`` style label."""
     return f"{DIMENSION_LABELS.get(dimension, dimension)}: {value}"

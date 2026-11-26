@@ -15,6 +15,7 @@ from typing import Any
 from retrylab.reporting import formatting as fmt
 from retrylab.reporting.labels import (
     COUNT_METRICS,
+    HOUR_METRICS,
     MONEY_METRICS,
     join_list,
     metric_label,
@@ -211,6 +212,10 @@ def _secondary(row: dict[str, Any]) -> Secondary:
         c, t = f"{row['control']:.2f}", f"{row['treatment']:.2f}"
         lift = f"{row['abs_lift']:+.2f}"
         ci = f"[{row['ci_low']:.2f}, {row['ci_high']:.2f}]"
+    elif metric in HOUR_METRICS:
+        c, t = f"{row['control']:.1f}h", f"{row['treatment']:.1f}h"
+        lift = f"{row['abs_lift']:+.1f}h"
+        ci = f"[{row['ci_low']:.1f}h, {row['ci_high']:.1f}h]"
     else:
         c, t = fmt.pct(row["control"]), fmt.pct(row["treatment"])
         lift = fmt.signed_pp(row["abs_lift"])

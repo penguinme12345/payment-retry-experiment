@@ -13,13 +13,14 @@ import streamlit as st  # noqa: E402
 
 from app import data  # noqa: E402
 from app.components import (  # noqa: E402
+    SECONDARY_LABELS,
     decision_banner,
     pct,
     pp,
     setup_page,
     srm_alert,
     style_figure,
-    usd,
+    usd_rounded,
 )
 
 setup_page("Smart retry timing experiment")
@@ -67,7 +68,7 @@ cols[2].caption(
 )
 cols[3].metric(
     "Annualized revenue impact",
-    usd(impact.get("annualized_incremental_revenue_usd")),
+    usd_rounded(impact.get("annualized_incremental_revenue_usd")),
 )
 cols[3].caption(
     "if shipped to all customers"
@@ -136,11 +137,23 @@ secondary = results.get("secondary") or []
 if secondary:
     st.subheader("Secondary metrics")
     st.dataframe(
-        pd.DataFrame(secondary),
+        pd.DataFrame(
+            [
+                {
+                    "Metric": SECONDARY_LABELS.get(r["metric"], r["metric"]),
+                    "Control": r["control"],
+                    "Treatment": r["treatment"],
+                    "Difference": r["abs_lift"],
+                    "95% CI": f"[{r['ci_low']:.2f}, {r['ci_high']:.2f}]",
+                    "p-value": "< 0.001" if r["p_value"] < 0.001 else f"{r['p_value']:.3f}",
+                }
+                for r in secondary
+            ]
+        ),
         hide_index=True,
         column_config={
-            c: st.column_config.NumberColumn(format="%.4f" if c == "p_value" else "%.2f")
-            for c in ("control", "treatment", "abs_lift", "ci_low", "ci_high", "p_value")
+            c: st.column_config.NumberColumn(format="%.2f")
+            for c in ("Control", "Treatment", "Difference")
         },
     )
 
