@@ -16,7 +16,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.4", "hypothesis>=6.100"]
-semantic = ["dbt-metricflow>=0.7"]
+semantic = ["dbt-metricflow>=0.7,<0.9"]  # 0.9+ pulls a dbt-core outside the pin above
 
 [tool.setuptools.packages.find]
 where = ["src"]
