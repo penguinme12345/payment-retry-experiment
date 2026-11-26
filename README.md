@@ -6,6 +6,7 @@
 ![Streamlit](https://img.shields.io/badge/dashboard-Streamlit-red)
 
 <!-- BEGIN:headline -->
+Smart retry timing moved payment recovery 34.9% → 38.1% (+3.3pp, 95% CI [2.4pp, 4.1pp]), worth an estimated $490,900/yr.
 <!-- END:headline -->
 
 An end-to-end experimentation project: a simulated subscription business, an A/B test of
@@ -24,6 +25,19 @@ customers? If so, for which segments should we ship it?
 ## Key results
 
 <!-- BEGIN:key-results -->
+| | |
+|---|---|
+| Decision | Ship to all customers |
+| Sample | 25,015 control / 24,985 treatment |
+| Recovery rate | 34.9% → 38.1% |
+| Lift (95% CI) | +3.3pp [2.4pp, 4.1pp] |
+| CUPED lift (95% CI) | +3.3pp [2.5pp, 4.1pp], 8.1% variance reduction |
+| SRM check | passed (p = 0.893) |
+| Guardrail: billing-complaint tickets within 14 days | +0.06pp (held) |
+| Guardrail: involuntary churn within 30 days | -2.13pp (held) |
+| Customers declined for insufficient funds | +6.8pp lift |
+| Customers paying with a debit card | +3.8pp lift |
+| Annualized impact | $490,900 |
 <!-- END:key-results -->
 
 The effect is concentrated where the mechanism says it should be: customers declined for
@@ -131,4 +145,7 @@ Use `make all SIM_CONFIG=config/sim.ci.yaml` for a quick 5,000-customer run.
 ## Resume bullets
 
 <!-- BEGIN:bullets -->
+- Designed and analyzed a 50,000-customer A/B test of smart payment-retry timing; recovery rate moved +3.3pp (95% CI [2.4pp, 4.1pp], p < 0.001).
+- Built a dbt + DuckDB metrics layer and Python stats pipeline with CUPED (8.1% variance cut) and BH-corrected cuts: 11 of 18 segments significant.
+- Wrote a decision memo and Streamlit dashboard recommending a full launch, sized at $490,900/yr in recovered revenue.
 <!-- END:bullets -->

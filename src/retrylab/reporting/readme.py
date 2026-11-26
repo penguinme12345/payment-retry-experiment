@@ -94,10 +94,10 @@ def fill(readme_text: str, generated: dict[str, str]) -> str:
     """Replace each marked block's body with its generated content."""
     for name, body in generated.items():
         pattern = re.compile(
-            rf"(<!-- BEGIN:{re.escape(name)} -->\n).*?(\n<!-- END:{re.escape(name)} -->)",
+            rf"(<!-- BEGIN:{re.escape(name)} -->\n)(?:.*?\n)?(<!-- END:{re.escape(name)} -->)",
             re.DOTALL,
         )
-        readme_text = pattern.sub(lambda m, b=body: m.group(1) + b + m.group(2), readme_text)
+        readme_text = pattern.sub(lambda m, b=body: m.group(1) + b + "\n" + m.group(2), readme_text)
     return readme_text
 
 
