@@ -1,0 +1,69 @@
+version: 2
+
+semantic_models:
+  - name: experiment_invoices
+    description: >
+      Failed subscription invoices enrolled in the `retry_timing_v1` retry-timing experiment, one
+      row per invoice. Source of every governed experiment metric.
+    model: ref('fct_experiment_invoices')
+    defaults:
+      agg_time_dimension: failed_at
+
+    entities:
+      - name: invoice
+        type: primary
+        expr: invoice_id
+      - name: customer
+        type: foreign
+        expr: customer_id
+
+    dimensions:
+      - name: failed_at
+        type: time
+        description: When the initial charge failed (UTC). Experiment enrolment time.
+        type_params:
+          time_granularity: day
+      - name: variant
+        type: categorical
+        description: Experiment arm, control (fixed schedule) or treatment (smart timing).
+      - name: country
+        type: categorical
+        description: Customer billing country.
+      - name: plan_tier
+        type: categorical
+        description: Subscription plan tier (basic, pro, business).
+      - name: card_funding
+        type: categorical
+        description: Card funding type (credit, debit, prepaid).
+      - name: initial_decline_code
+        type: categorical
+        description: Decline code returned on the initial failed charge.
+      - name: is_recovered
+        type: categorical
+        description: Whether the invoice was recovered within the 7-day retry window.
+
+    measures:
+      - name: invoice_count
+        description: Number of experiment invoices.
+        agg: count
+        expr: invoice_id
+      - name: recovered_invoice_count
+        description: Experiment invoices recovered by a retry within 7 days of the initial failure.
+        agg: sum
+        expr: case when is_recovered then 1 else 0 end
+      - name: recovered_revenue_usd
+        description: Invoice amount collected by retries within the 7-day window (USD).
+        agg: sum
+        expr: recovered_amount_usd
+      - name: retries_attempted
+        description: Total retry attempts made (excludes the initial charge).
+        agg: sum
+        expr: retries_attempted
+      - name: billing_ticket_invoice_count
+        description: Experiment invoices whose customer filed a billing complaint within 14 days.
+        agg: sum
+        expr: case when had_billing_ticket_14d then 1 else 0 end
+      - name: involuntary_churn_invoice_count
+        description: Experiment invoices whose customer churned involuntarily within 30 days.
+        agg: sum
+        expr: case when churned_involuntary_30d then 1 else 0 end
