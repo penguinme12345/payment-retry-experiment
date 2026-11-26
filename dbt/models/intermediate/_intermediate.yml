@@ -1,0 +1,70 @@
+version: 2
+
+models:
+  - name: int_invoice_attempts
+    description: >
+      One row per invoice summarising its charge attempts: the initial failure (attempt 0), the
+      retry count and the first successful retry. Recovery-window rules are applied downstream in
+      `fct_experiment_invoices`.
+    columns:
+      - name: invoice_id
+        description: Invoice identifier.
+        data_tests: [unique, not_null]
+      - name: failed_at
+        description: "`attempted_at` of attempt 0 (the initial charge)."
+      - name: initial_decline_code
+        description: Decline code of attempt 0; null if attempt 0 succeeded.
+      - name: initial_attempt_failed
+        description: True when attempt 0 exists and failed.
+      - name: n_attempts
+        description: All attempts on the invoice, including attempt 0.
+      - name: n_failed_attempts
+        description: Attempts with outcome `failed`.
+      - name: retries_attempted
+        description: Attempts with `attempt_number >= 1`.
+      - name: first_success_at
+        description: Time of the first successful attempt of any number; null if never paid.
+      - name: first_retry_success_at
+        description: Time of the first successful retry (attempt_number >= 1); null if none.
+
+  - name: int_customer_pre_period
+    description: >
+      CUPED covariates per customer from the pre-period (`pre_period_start`..`pre_period_end`,
+      both dates inclusive, by invoice `created_at`, experiment invoices excluded). Every customer
+      has a row; customers without history get zero counts and a zero failure rate.
+    columns:
+      - name: customer_id
+        description: Customer identifier.
+        data_tests: [unique, not_null]
+      - name: pre_invoice_count
+        description: Pre-period invoices.
+      - name: pre_paid_invoice_count
+        description: Pre-period invoices with final status `paid`.
+      - name: pre_attempt_count
+        description: Charge attempts on pre-period invoices.
+      - name: pre_failed_attempt_count
+        description: Failed charge attempts on pre-period invoices.
+      - name: pre_failed_attempt_rate
+        description: pre_failed_attempt_count / pre_attempt_count; 0 when there are no attempts.
+
+  - name: int_invoice_outcomes
+    description: >
+      Guardrail outcomes per experiment invoice, measured from `failed_at`: billing-complaint
+      tickets within `ticket_window_days` and involuntary churn within `churn_window_days`. Both
+      window ends are inclusive.
+    columns:
+      - name: invoice_id
+        description: Experiment invoice identifier.
+        data_tests: [unique, not_null]
+      - name: customer_id
+        description: Customer on the invoice.
+      - name: failed_at
+        description: Initial failure time the windows start from.
+      - name: n_billing_tickets_14d
+        description: Billing-complaint tickets opened in the ticket window.
+      - name: had_billing_ticket_14d
+        description: At least one billing-complaint ticket in the ticket window.
+      - name: churned_involuntary_at
+        description: First involuntary churn event inside the churn window; null if none.
+      - name: churned_involuntary_30d
+        description: Involuntary churn inside the churn window.
