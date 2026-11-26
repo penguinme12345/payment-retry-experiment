@@ -1,0 +1,95 @@
+# Smart retry timing: {% if c.decision == "ship" %}ship to everyone{% elif c.decision == "ship_segmented" %}ship to targeted segments{% elif c.reason == "srm" %}results invalid, re-run{% else %}do not ship{% endif %}
+
+*Experiment `{{ c.experiment_id }}` · {{ c.n_total }} failed invoices · results generated {{ c.generated_at }}*
+
+## TL;DR
+
+{{ c.tldr }}
+
+## What we tested and why
+
+A failed subscription payment gets up to four retries over seven days, today on a fixed day 1, 3, 5, 7 schedule. Smart retries keep the same budget but time it: just after the customer's payday when we know it, at the hour their card usually succeeds. The question: does better timing recover more failed payments without annoying customers?
+
+We randomized {{ c.n_control }} customers to the fixed schedule and {{ c.n_treatment }} to smart retries, one failed invoice each. The test was sized to detect a {{ c.mde }} change from a {{ c.baseline_rate }} baseline at {{ c.power }} power (alpha {{ c.alpha }}), which needs {{ c.required_n }} per arm; we planned {{ c.planned_n }} and {{ c.sample_vs_plan }}.
+
+## Results
+
+{% if not c.srm_passed -%}
+**Sample-ratio check failed ({{ c.srm_p }}, threshold {{ c.srm_threshold }}).** The two arms are not the size randomization should produce, which usually means customers were dropped or logged unevenly. The figures below are reported for transparency only and should not drive a decision.
+
+{% endif -%}
+The {{ c.primary_label }} was {{ c.control_rate }} on the fixed schedule and {{ c.treatment_rate }} with smart retries: a lift of **{{ c.abs_lift }}** ({{ c.rel_lift }} relative), {{ c.ci_level }} CI {{ c.ci }}, {{ c.p }}. {% if c.significant %}The lift is statistically significant.{% else %}The interval includes zero, so we cannot rule out no effect.{% endif %}
+
+Adjusting for each customer's pre-period failure rate (CUPED on `{{ c.cuped_covariate }}`) cut variance by {{ c.cuped_vr }} and gives {{ c.cuped_lift }}, CI {{ c.cuped_ci }}{% if c.significant and c.cuped_tighter %}, confirming the raw estimate with a tighter interval{% elif c.significant %}, in line with the raw estimate{% endif %}.
+{% if c.srm_passed %}
+The traffic split passed the sample-ratio check ({{ c.srm_p }}), so assignment looks healthy.
+{% endif %}
+{% for s in c.secondary -%}
+- {{ s.label | capitalize }}: {{ s.control }} → {{ s.treatment }} ({{ s.lift }}, CI {{ s.ci }}, {{ s.p }}).
+{% endfor %}
+## Where it works
+
+{% if c.positive_segments -%}
+{% if c.n_positive_segments > 1 -%}
+{{ c.n_positive_segments }} of {{ c.n_segments }} segment cuts improved significantly after Benjamini–Hochberg correction.{% if c.extra_positive_count %} The strongest evidence:{% endif %}
+
+{% endif -%}
+{% for s in c.positive_segments -%}
+- {{ s.sentence }}
+{% endfor %}
+{% else -%}
+No segment showed a significant lift after correcting for multiple comparisons (Benjamini–Hochberg across all {{ c.n_segments }} segment cuts).
+
+{% endif -%}
+{% if c.negative_segments -%}
+Smart retries did worse for some customers:
+
+{% for s in c.negative_segments -%}
+- {{ s.sentence }}
+{% endfor %}
+{% endif -%}
+{% if c.positive_segments and c.null_highlights -%}
+There was no significant effect for {{ c.null_highlights }}.{% if c.expired_card_null %} That fits the mechanism: timing helps when a customer is briefly short of money, not when the card itself has expired.{% endif %}
+{% endif %}
+## Guardrails
+
+{% for g in c.guardrails -%}
+- **{{ g.label | capitalize }}:** {{ g.control }} → {{ g.treatment }} ({{ g.lift }}, CI {{ g.ci }}; {{ g.limit }}). {% if g.breached %}**Breached:** we are confident the increase exceeds the limit.{% else %}Held.{% endif %}
+{% endfor %}
+{% if c.guardrails_held -%}
+Customer experience held up: no guardrail moved past its pre-registered limit.
+{% else -%}
+The breach in {{ c.breached_labels }} rules out shipping in its current form.
+{% endif %}
+## Recommendation and next steps
+
+**Decision: {% if c.decision == "ship" %}ship{% elif c.decision == "ship_segmented" %}ship to {{ c.ship_scope_text }}{% else %}do not ship{% endif %}.** {{ c.rationale }}
+{% if c.decision != "do_not_ship" %}
+Estimated impact: **{{ c.annual_impact }} a year** in incremental recovered revenue{% if c.decision == "ship_segmented" %} from the shipped segments{% endif %}.
+{% endif %}
+Rollout:
+
+{% for step in c.rollout_steps -%}
+{{ loop.index }}. {{ step }}
+{% endfor %}
+What to test next:
+
+{% for t in c.next_tests -%}
+- {{ t }}
+{% endfor %}
+## Caveats
+
+- The data is simulated, with effect sizes planted by design; the method transfers, the numbers do not.
+{% for a in c.assumptions -%}
+- Revenue estimate assumes: {{ a | lower_first }}.
+{% endfor %}
+{% if c.figures %}
+## Figures
+
+{% for f in c.figures -%}
+![{{ f.caption }}]({{ f.path }})
+
+*{{ f.caption }}.*
+
+{% endfor %}
+{%- endif %}

@@ -1,0 +1,48 @@
+{
+  "experiment_id": "retry_timing_v1",
+  "primary_metric": "recovery_rate",
+  "baseline_rate": 0.345,
+  "mde_abs": 0.02,
+  "alpha": 0.05,
+  "power": 0.8,
+  "two_sided": true,
+  "required_n_per_arm": 8983,
+  "planned_n_per_arm": 25000,
+  "achieved_power_at_mde": 0.997,
+  "mde_curve": [
+    {
+      "n_per_arm": 2500,
+      "mde_abs": 0.0376
+    },
+    {
+      "n_per_arm": 5000,
+      "mde_abs": 0.0266
+    },
+    {
+      "n_per_arm": 10000,
+      "mde_abs": 0.0188
+    },
+    {
+      "n_per_arm": 15000,
+      "mde_abs": 0.0154
+    },
+    {
+      "n_per_arm": 20000,
+      "mde_abs": 0.0133
+    },
+    {
+      "n_per_arm": 25000,
+      "mde_abs": 0.0119
+    }
+  ],
+  "guardrails": [
+    {
+      "metric": "billing_ticket_rate",
+      "max_acceptable_increase_abs": 0.005
+    },
+    {
+      "metric": "involuntary_churn_rate",
+      "max_acceptable_increase_abs": 0.0
+    }
+  ]
+}

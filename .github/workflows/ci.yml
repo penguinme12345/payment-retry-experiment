@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: make setup
+      - run: make lint
+      - run: make test
+
+  pipeline:
+    # Full pipeline at 5k customers. Until workstreams B–E are merged, the dbt/design/analysis/
+    # export steps don't exist yet, so this job is allowed to fail (PRD-F phase 2 removes this).
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: make setup
+      - run: make all SIM_CONFIG=config/sim.ci.yaml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pipeline-outputs
+          path: |
+            reports/
+            docs/memo.md
+          if-no-files-found: warn
