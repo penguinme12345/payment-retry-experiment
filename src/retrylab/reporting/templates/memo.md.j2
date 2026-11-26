@@ -54,7 +54,7 @@ There was no significant effect for {{ c.null_highlights }}.{% if c.expired_card
 ## Guardrails
 
 {% for g in c.guardrails -%}
-- **{{ g.label | capitalize }}:** {{ g.control }} → {{ g.treatment }} ({{ g.lift }}, CI {{ g.ci }}; {{ g.limit }}). {% if g.breached %}**Breached:** we are confident the increase exceeds the limit.{% else %}Held.{% endif %}
+- **{{ g.label | capitalize }}:** {{ g.control }} → {{ g.treatment }} ({{ g.lift }}, CI {{ g.ci }}; {{ g.limit }}). {% if g.breached %}**Breached:** we are confident the increase exceeds the limit.{% elif not c.srm_passed %}Unverified.{% else %}Held.{% endif %}
 {% endfor %}
 {% if c.guardrails_held and not c.srm_passed -%}
 No guardrail estimate crossed its limit, but with the sample-ratio check failing these estimates are unverified.

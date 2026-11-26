@@ -164,6 +164,8 @@ def test_srm_failure_leaves_guardrails_unverified(power: dict) -> None:
     memo = render_memo(_load("results_do_not_ship_srm.json"), power)
     assert "Customer experience held up" not in memo
     assert "unverified" in memo
+    assert "Held." not in memo
+    assert "Unverified." in memo
 
 
 def test_cuped_not_confirmatory_when_ci_spans_zero(power: dict) -> None:
