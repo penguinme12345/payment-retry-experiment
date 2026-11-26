@@ -1,0 +1,170 @@
+version: 2
+
+models:
+  - name: fct_experiment_invoices
+    description: >
+      The experiment fact table: one row per failed invoice in the `retry_timing_v1` window
+      (contract C4), with the assigned variant, segment attributes, the recovery outcome within
+      the 7-day retry window, the 14-day billing-ticket and 30-day involuntary-churn guardrails,
+      and pre-period CUPED covariates. All windows start at the initial failure (attempt 0) and
+      include their upper bound.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: invoice_id
+        data_type: varchar
+        description: Experiment invoice identifier. Primary key.
+        constraints: [{type: not_null}]
+        data_tests: [unique, not_null]
+      - name: customer_id
+        data_type: varchar
+        description: Customer billed. Each customer has exactly one experiment invoice.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+      - name: variant
+        data_type: varchar
+        description: Assigned arm from `stg_assignments` (control = fixed +1/3/5/7d schedule).
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [control, treatment]
+      - name: country
+        data_type: varchar
+        description: Customer billing country.
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [US, CA, GB, DE, FR, BR, IN, AU]
+      - name: plan_tier
+        data_type: varchar
+        description: Customer plan tier.
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [basic, pro, business]
+      - name: card_funding
+        data_type: varchar
+        description: Funding type of the customer's card.
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [credit, debit, prepaid]
+      - name: initial_decline_code
+        data_type: varchar
+        description: Decline code returned on the initial charge (attempt 0).
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [insufficient_funds, expired_card, do_not_honor, generic_decline]
+      - name: amount_usd
+        data_type: double
+        description: Invoice amount in USD.
+        data_tests: [not_null]
+      - name: failed_at
+        data_type: timestamp
+        description: Time of the initial failed charge (attempt 0 `attempted_at`), UTC.
+        data_tests: [not_null]
+      - name: is_recovered
+        data_type: boolean
+        description: >
+          True when a retry (attempt_number >= 1) succeeded at or before
+          failed_at + `recovery_window_days` (7). A success after the window does not count.
+        data_tests: [not_null]
+      - name: recovered_at
+        data_type: timestamp
+        description: Time of the recovering retry; null when not recovered.
+      - name: hours_to_recovery
+        data_type: double
+        description: Hours from failed_at to recovered_at; null when not recovered.
+      - name: retries_attempted
+        data_type: integer
+        description: Number of retries made (attempts with attempt_number >= 1).
+        data_tests: [not_null]
+      - name: recovered_amount_usd
+        data_type: double
+        description: amount_usd when recovered, otherwise 0.
+        data_tests: [not_null]
+      - name: had_billing_ticket_14d
+        data_type: boolean
+        description: >
+          The customer opened a `billing_complaint` ticket in [failed_at, failed_at + 14 days].
+        data_tests: [not_null]
+      - name: churned_involuntary_30d
+        data_type: boolean
+        description: The customer churned involuntarily in [failed_at, failed_at + 30 days].
+        data_tests: [not_null]
+      - name: pre_paid_invoice_count
+        data_type: integer
+        description: Paid invoices in the pre-period (2025-03-01..2026-02-28). CUPED covariate.
+        data_tests: [not_null]
+      - name: pre_failed_attempt_rate
+        data_type: double
+        description: >
+          Failed attempts / all attempts on pre-period invoices; 0 when the customer has no
+          pre-period attempts. CUPED covariate.
+        data_tests: [not_null]
+
+  - name: agg_experiment_summary
+    description: Headline experiment metrics, one row per variant (contract C4).
+    columns:
+      - name: variant
+        description: Experiment arm. Primary key.
+        data_tests:
+          - unique
+          - not_null
+          - accepted_values:
+              values: [control, treatment]
+      - name: n_invoices
+        description: Experiment invoices in the arm.
+      - name: n_recovered
+        description: Invoices recovered within the 7-day retry window.
+      - name: recovery_rate
+        description: n_recovered / n_invoices.
+      - name: recovered_revenue_usd
+        description: Sum of recovered_amount_usd, rounded to cents.
+      - name: recovered_revenue_per_invoice_usd
+        description: Recovered revenue divided by n_invoices (all invoices, recovered or not).
+      - name: avg_retries_per_invoice
+        description: Mean retries_attempted per experiment invoice.
+      - name: billing_ticket_rate
+        description: Share of invoices whose customer filed a billing complaint within 14 days.
+      - name: involuntary_churn_rate
+        description: Share of invoices whose customer churned involuntarily within 30 days.
+
+  - name: agg_experiment_segments
+    description: >
+      Recovery metrics by variant and segment, one row per (variant, segment_dimension,
+      segment_value) (contract C4). The four dimensions are stacked long-form, so each dimension's
+      rows sum back to the variant totals.
+    data_tests:
+      - unique_combination:
+          columns: [variant, segment_dimension, segment_value]
+    columns:
+      - name: variant
+        description: Experiment arm.
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [control, treatment]
+      - name: segment_dimension
+        description: Which attribute the row is cut by.
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [country, plan_tier, card_funding, initial_decline_code]
+      - name: segment_value
+        description: The attribute value, e.g. `US` or `insufficient_funds`.
+        data_tests: [not_null]
+      - name: n_invoices
+        description: Experiment invoices in the cell.
+      - name: n_recovered
+        description: Recovered invoices in the cell.
+      - name: recovery_rate
+        description: n_recovered / n_invoices.
+      - name: recovered_revenue_per_invoice_usd
+        description: Recovered revenue in the cell divided by n_invoices.

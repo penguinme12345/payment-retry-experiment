@@ -1,0 +1,164 @@
+version: 2
+
+models:
+  - name: stg_customers
+    description: Customers, one row per customer. Renamed and cast from `raw_customers`.
+    columns:
+      - name: customer_id
+        description: Customer identifier (`cus_` + 6 digits).
+        data_tests: [unique, not_null]
+      - name: signup_at
+        description: When the customer signed up (UTC).
+        data_tests: [not_null]
+      - name: country
+        description: Billing country (segment dimension).
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [US, CA, GB, DE, FR, BR, IN, AU]
+      - name: plan_tier
+        description: Subscription plan (segment dimension).
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [basic, pro, business]
+      - name: monthly_price_usd
+        description: Monthly plan price in USD (basic 9, pro 29, business 99).
+        data_tests: [not_null]
+      - name: card_brand
+        description: Card network of the customer's default payment method.
+        data_tests:
+          - accepted_values:
+              values: [visa, mastercard, amex]
+      - name: card_funding
+        description: Funding type of the default card (segment dimension).
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [credit, debit, prepaid]
+      - name: payday_day_of_month
+        description: Customer's known payday (1, 15 or 28); null when unknown.
+        data_tests:
+          - accepted_values:
+              values: [1, 15, 28]
+              quote: false
+
+  - name: stg_assignments
+    description: Experiment assignments, one row per customer.
+    columns:
+      - name: customer_id
+        description: Assigned customer.
+        data_tests:
+          - unique
+          - not_null
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+      - name: experiment_id
+        description: Experiment key; always `retry_timing_v1`.
+        data_tests:
+          - accepted_values:
+              values: ["{{ var('experiment_id') }}"]
+      - name: variant
+        description: Assigned arm, `control` (fixed schedule) or `treatment` (smart timing).
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [control, treatment]
+      - name: assigned_at
+        description: Assignment time, equal to the initial failed attempt's `attempted_at`.
+        data_tests: [not_null]
+
+  - name: stg_invoices
+    description: Historical and experiment invoices with their final status.
+    columns:
+      - name: invoice_id
+        description: Invoice identifier (`in_` + 7 digits).
+        data_tests: [unique, not_null]
+      - name: customer_id
+        description: Billed customer.
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+      - name: amount_usd
+        description: Invoice amount in USD (the customer's monthly price).
+      - name: created_at
+        description: When the invoice was created (UTC).
+      - name: is_experiment_invoice
+        description: True for the single failed invoice per customer inside the experiment window.
+      - name: status
+        description: Final invoice state.
+        data_tests:
+          - accepted_values:
+              values: [paid, uncollectible]
+
+  - name: stg_payment_attempts
+    description: Charge attempts, one row per attempt.
+    columns:
+      - name: attempt_id
+        description: Attempt identifier (`py_` + 8 digits).
+        data_tests: [unique, not_null]
+      - name: invoice_id
+        description: Invoice the attempt charged.
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('stg_invoices')
+              field: invoice_id
+      - name: attempt_number
+        description: 0 for the initial charge, 1-4 for retries.
+        data_tests:
+          - accepted_values:
+              values: [0, 1, 2, 3, 4]
+              quote: false
+      - name: attempted_at
+        description: When the charge was attempted (UTC).
+      - name: outcome
+        description: Attempt result.
+        data_tests:
+          - accepted_values:
+              values: [succeeded, failed]
+      - name: decline_code
+        description: Issuer decline code; null when the attempt succeeded.
+        data_tests:
+          - accepted_values:
+              values: [insufficient_funds, expired_card, do_not_honor, generic_decline]
+
+  - name: stg_support_tickets
+    description: Support tickets.
+    columns:
+      - name: ticket_id
+        description: Ticket identifier (`tkt_` + 7 digits).
+        data_tests: [unique, not_null]
+      - name: customer_id
+        description: Customer who raised the ticket.
+        data_tests:
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+      - name: created_at
+        description: When the ticket was opened (UTC).
+      - name: category
+        description: Ticket category.
+        data_tests:
+          - accepted_values:
+              values: [billing_complaint, other]
+
+  - name: stg_subscription_events
+    description: Subscription churn events.
+    columns:
+      - name: customer_id
+        description: Customer who churned.
+        data_tests:
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+      - name: event_type
+        description: Churn type.
+        data_tests:
+          - accepted_values:
+              values: [churned_involuntary, churned_voluntary]
+      - name: event_at
+        description: When the churn happened (UTC).

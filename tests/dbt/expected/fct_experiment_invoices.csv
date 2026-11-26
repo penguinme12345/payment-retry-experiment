@@ -1,0 +1,21 @@
+invoice_id,customer_id,variant,country,plan_tier,card_funding,initial_decline_code,amount_usd,failed_at,is_recovered,recovered_at,hours_to_recovery,retries_attempted,recovered_amount_usd,had_billing_ticket_14d,churned_involuntary_30d,pre_paid_invoice_count,pre_failed_attempt_rate
+in_0000014,cus_000001,control,US,basic,credit,insufficient_funds,9.0,2026-03-10 14:00:00,True,2026-03-11 14:00:00,24.0,1,9.0,False,False,12,0.0
+in_0000027,cus_000002,treatment,US,pro,debit,insufficient_funds,29.0,2026-03-10 14:00:00,True,2026-03-17 14:00:00,168.0,4,29.0,False,False,12,0.0
+in_0000040,cus_000003,control,CA,business,credit,do_not_honor,99.0,2026-03-10 14:00:00,False,,,4,0.0,False,False,12,0.0
+in_0000053,cus_000004,treatment,GB,basic,prepaid,insufficient_funds,9.0,2026-03-10 14:00:00,False,,,3,0.0,False,False,12,0.0
+in_0000054,cus_000005,control,DE,pro,credit,expired_card,29.0,2026-03-10 14:00:00,False,,,4,0.0,False,False,0,0.0
+in_0000067,cus_000006,treatment,FR,business,debit,generic_decline,99.0,2026-03-10 14:00:00,True,2026-03-13 02:00:00,60.0,2,99.0,False,False,12,0.0
+in_0000080,cus_000007,control,BR,basic,prepaid,insufficient_funds,9.0,2026-03-10 14:00:00,False,,,4,0.0,True,True,12,0.0
+in_0000093,cus_000008,treatment,IN,pro,credit,do_not_honor,29.0,2026-03-10 14:00:00,True,2026-03-10 20:00:00,6.0,1,29.0,True,False,12,0.0
+in_0000106,cus_000009,control,AU,business,debit,generic_decline,99.0,2026-03-10 14:00:00,False,,,4,0.0,False,False,12,0.0
+in_0000119,cus_000010,treatment,US,basic,credit,expired_card,9.0,2026-03-10 14:00:00,True,2026-03-15 14:00:00,120.0,3,9.0,False,False,12,0.0
+in_0000132,cus_000011,control,CA,pro,prepaid,insufficient_funds,29.0,2026-03-10 14:00:00,True,2026-03-13 14:00:00,72.0,2,29.0,False,False,12,0.0
+in_0000145,cus_000012,treatment,GB,business,credit,do_not_honor,99.0,2026-03-10 14:00:00,False,,,0,0.0,False,False,12,0.0
+in_0000159,cus_000013,control,DE,basic,debit,generic_decline,9.0,2026-03-10 14:00:00,False,,,4,0.0,False,False,11,0.3888888888888889
+in_0000162,cus_000014,treatment,FR,pro,prepaid,insufficient_funds,29.0,2026-03-10 14:00:00,True,2026-03-11 14:00:00,24.0,1,29.0,False,False,2,0.3333333333333333
+in_0000175,cus_000015,control,BR,business,credit,expired_card,99.0,2026-03-10 14:00:00,False,,,4,0.0,False,True,12,0.0
+in_0000188,cus_000016,treatment,IN,basic,debit,generic_decline,9.0,2026-03-10 14:00:00,False,,,3,0.0,True,True,12,0.0
+in_0000201,cus_000017,control,AU,pro,credit,do_not_honor,29.0,2026-03-10 14:00:00,True,2026-03-15 14:00:00,120.0,3,29.0,True,False,12,0.0
+in_0000214,cus_000018,treatment,US,business,prepaid,expired_card,99.0,2026-03-10 14:00:00,True,2026-03-12 15:30:00,49.5,2,99.0,False,False,12,0.0
+in_0000227,cus_000019,control,US,basic,debit,insufficient_funds,9.0,2026-03-31 23:59:59,False,,,4,0.0,False,False,12,0.0
+in_0000240,cus_000020,treatment,CA,pro,credit,generic_decline,29.0,2026-03-01 00:00:00,False,,,4,0.0,False,False,12,0.0

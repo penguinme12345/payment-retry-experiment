@@ -1,0 +1,118 @@
+version: 2
+
+metrics:
+  - name: experiment_invoices
+    label: Experiment invoices
+    description: >
+      How many failed subscription invoices entered the retry-timing experiment. Each customer
+      contributes exactly one invoice: the first charge that failed in March 2026. This is the
+      denominator for every rate below.
+    type: simple
+    type_params:
+      measure: invoice_count
+
+  - name: recovered_revenue
+    label: Recovered revenue (USD)
+    description: >
+      Dollars collected from failed invoices because a retry succeeded within 7 days of the
+      initial failure (inclusive). A payment collected on day 8 or later is not counted. This is
+      the total, so compare arms with recovered_revenue_per_invoice rather than this metric.
+    type: simple
+    type_params:
+      measure: recovered_revenue_usd
+
+  - name: recovery_rate
+    label: Recovery rate
+    description: >
+      The primary experiment metric: the share of failed invoices that a retry recovered within
+      7 days of the initial failure. Numerator: invoices with a successful retry at or before
+      failed_at + 7 days. Denominator: all experiment invoices.
+    type: ratio
+    type_params:
+      numerator: recovered_invoices
+      denominator: experiment_invoices
+
+  - name: recovered_revenue_per_invoice
+    label: Recovered revenue per invoice (USD)
+    description: >
+      Average dollars recovered per failed invoice, counting unrecovered invoices as $0. It
+      combines how often we recover with how large the recovered invoices are, so it is the
+      revenue view of recovery_rate. Numerator: recovered revenue within 7 days. Denominator: all
+      experiment invoices.
+    type: ratio
+    type_params:
+      numerator: recovered_revenue
+      denominator: experiment_invoices
+
+  - name: avg_retries_per_invoice
+    label: Average retries per invoice
+    description: >
+      How many retry charges we made per failed invoice, on average (the initial charge is not
+      counted; the maximum is 4). Lower means less load on the card networks and fewer declined
+      charges on the customer's statement. Numerator: retries attempted. Denominator: all
+      experiment invoices.
+    type: ratio
+    type_params:
+      numerator: retries_attempted_total
+      denominator: experiment_invoices
+
+  - name: billing_ticket_rate
+    label: Billing ticket rate
+    description: >
+      Guardrail. The share of failed invoices whose customer opened a billing-complaint support
+      ticket within 14 days of the initial failure (inclusive). Numerator: invoices with at least
+      one billing_complaint ticket in the window. Denominator: all experiment invoices.
+    type: ratio
+    type_params:
+      numerator: billing_ticket_invoices
+      denominator: experiment_invoices
+
+  - name: involuntary_churn_rate
+    label: Involuntary churn rate
+    description: >
+      Guardrail. The share of failed invoices whose customer lost their subscription because
+      payment could not be collected, within 30 days of the initial failure (inclusive).
+      Voluntary cancellations are excluded. Numerator: invoices with a churned_involuntary event
+      in the window. Denominator: all experiment invoices.
+    type: ratio
+    type_params:
+      numerator: involuntary_churn_invoices
+      denominator: experiment_invoices
+
+  # Building blocks for the ratio metrics above. Exposed for drill-down; the governed metrics
+  # are the seven listed in contract C4.
+  - name: recovered_invoices
+    label: Recovered invoices
+    description: >
+      Count of experiment invoices recovered by a retry within 7 days of the initial failure
+      (inclusive). Numerator of recovery_rate.
+    type: simple
+    type_params:
+      measure: recovered_invoice_count
+
+  - name: retries_attempted_total
+    label: Retries attempted
+    description: >
+      Total retry charges made on experiment invoices, excluding the initial charge. Numerator of
+      avg_retries_per_invoice.
+    type: simple
+    type_params:
+      measure: retries_attempted
+
+  - name: billing_ticket_invoices
+    label: Invoices with a billing ticket
+    description: >
+      Count of experiment invoices whose customer opened a billing-complaint ticket within 14
+      days of the initial failure (inclusive). Numerator of billing_ticket_rate.
+    type: simple
+    type_params:
+      measure: billing_ticket_invoice_count
+
+  - name: involuntary_churn_invoices
+    label: Invoices followed by involuntary churn
+    description: >
+      Count of experiment invoices whose customer churned involuntarily within 30 days of the
+      initial failure (inclusive). Numerator of involuntary_churn_rate.
+    type: simple
+    type_params:
+      measure: involuntary_churn_invoice_count

@@ -1,0 +1,25 @@
+version: 2
+
+sources:
+  - name: raw
+    description: >
+      Raw Parquet tables written by the simulator (contract C3). Read in place by DuckDB; the
+      directory is `PROJECT_ROOT/<raw_dir>` (var `raw_dir`, default `data/raw`; absolute paths are
+      used as-is).
+    meta:
+      external_location: >-
+        {%- set d = var('raw_dir', 'data/raw') -%}
+        {{ d if d.startswith('/') else env_var('PROJECT_ROOT', '.') ~ '/' ~ d }}/{name}.parquet
+    tables:
+      - name: raw_customers
+        description: One row per customer, with segment attributes and payday.
+      - name: raw_assignments
+        description: One row per customer with the experiment variant assigned.
+      - name: raw_invoices
+        description: Historical (pre-period) and experiment invoices with their final status.
+      - name: raw_payment_attempts
+        description: One row per charge attempt; attempt 0 is the initial charge, 1-4 are retries.
+      - name: raw_support_tickets
+        description: Support tickets raised by customers.
+      - name: raw_subscription_events
+        description: Subscription churn events (voluntary and involuntary).
