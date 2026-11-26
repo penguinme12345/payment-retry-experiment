@@ -1,0 +1,14 @@
+# RetryLab data simulation config (PRD-A). Tunable; committed.
+seed: 20260301
+n_customers: 50000
+country_mix:   {US: 0.40, CA: 0.08, GB: 0.12, DE: 0.10, FR: 0.08, BR: 0.08, IN: 0.08, AU: 0.06}
+plan_mix:      {basic: 0.55, pro: 0.35, business: 0.10}
+funding_mix:   {credit: 0.55, debit: 0.38, prepaid: 0.07}
+brand_mix:     {visa: 0.55, mastercard: 0.35, amex: 0.10}
+decline_mix:   {insufficient_funds: 0.45, expired_card: 0.20, do_not_honor: 0.20, generic_decline: 0.15}
+payday_known_rate: 0.6
+pre_period_months: 12
+inject_srm: false           # if true, drop 3% of treatment customers to test SRM detection
+# Optional: path to the ground-truth file, relative to this file. Defaults to ground_truth.yaml
+# in the same directory.
+# ground_truth_path: ground_truth.yaml

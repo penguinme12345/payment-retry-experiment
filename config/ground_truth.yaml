@@ -1,0 +1,8 @@
+# True simulated effects (contract C7). Only src/retrylab/sim, tests/sim and tests/integration
+# may read this file. Analysis, dashboard and memo must never read it.
+baseline_recovery:   {insufficient_funds: 0.45, expired_card: 0.15, do_not_honor: 0.30, generic_decline: 0.35}
+treatment_lift_abs:  {insufficient_funds: 0.06, expired_card: 0.00, do_not_honor: 0.01, generic_decline: 0.02}
+payday_known_extra_lift_abs: 0.02     # extra lift, applied only to insufficient_funds when payday is known
+billing_ticket_rate: {control: 0.030, treatment: 0.031}
+involuntary_churn_given_unrecovered: 0.70
+voluntary_churn_30d: 0.02
