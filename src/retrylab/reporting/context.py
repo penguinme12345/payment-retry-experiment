@@ -136,6 +136,7 @@ class MemoContext:
     cuped_ci: str
     cuped_vr: str
     cuped_tighter: bool
+    cuped_agrees: bool
     srm_passed: bool
     srm_p: str
     srm_threshold: str
@@ -378,6 +379,8 @@ def build_context(
     else:
         sample_vs_plan = "fell short of the required sample, so the test is underpowered"
     cuped_tighter = (cuped["ci_high"] - cuped["ci_low"]) < (prim["ci_high"] - prim["ci_low"])
+    # CUPED only "confirms" a significant raw lift if its CI excludes zero on the same side.
+    cuped_agrees = cuped["ci_low"] > 0 if prim["abs_lift"] >= 0 else cuped["ci_high"] < 0
 
     return MemoContext(
         decision=decision,
@@ -411,6 +414,7 @@ def build_context(
         cuped_ci=fmt.ci_pp(cuped["ci_low"], cuped["ci_high"]),
         cuped_vr=fmt.plain_pct(cuped["variance_reduction_pct"]),
         cuped_tighter=cuped_tighter,
+        cuped_agrees=cuped_agrees,
         srm_passed=bool(srm["passed"]),
         srm_p=fmt.pvalue(srm["p_value"]),
         srm_threshold=f"{srm['threshold']:g}",
